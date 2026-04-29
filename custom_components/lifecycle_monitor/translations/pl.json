@@ -1,0 +1,129 @@
+{
+    "entity": {
+        "sensor": {
+            "days_remaining": {
+                "name": "Pozostało dni"
+            }
+        },
+        "binary_sensor": {
+            "warning": {
+                "name": "Ostrzeżenie"
+            },
+            "overdue": {
+                "name": "Przekroczone"
+            }
+        },
+        "button": {
+            "battery_replaced": {
+                "name": "Bateria wymieniona"
+            },
+            "mark_as_done": {
+                "name": "Oznacz jako wykonane"
+            }
+        },
+        "datetime": {
+            "battery_replaced": {
+                "name": "Bateria wymieniona"
+            },
+            "last_performed": {
+                "name": "Ostatnio wykonane"
+            },
+            "end_date": {
+                "name": "Data końcowa"
+            }
+        }
+    },
+    "config": {
+        "step": {
+            "user": {
+                "title": "Lifecycle Monitor",
+                "description": "Wybierz typ urządzenia do dodania.",
+                "data": {
+                    "device_type": "Typ urządzenia"
+                }
+            },
+            "battery": {
+                "title": "Wirtualna bateria",
+                "description": "Utwórz wirtualną baterię, która symuluje rozładowanie na podstawie konfigurowalnego okresu żywotności.",
+                "data": {
+                    "name": "Nazwa",
+                    "battery_lifespan": "Żywotność baterii (dni)",
+                    "low_threshold_days": "Ostrzeżenie o niskim stanie (dni do końca)",
+                    "device_id": "Przypisz do urządzenia"
+                }
+            },
+            "maintenance": {
+                "title": "Czynność powtarzalna",
+                "description": "Utwórz sensor do śledzenia dni do wykonania powtarzalnej czynności (np. wymiana filtra do wody co 90 dni).",
+                "data": {
+                    "name": "Nazwa",
+                    "interval_days": "Interwał czynności (dni)",
+                    "warning_threshold_days": "Ostrzeżenie przed końcem (dni)",
+                    "device_id": "Przypisz do urządzenia"
+                }
+            },
+            "fixed_date": {
+                "title": "Dni do ustalonej daty",
+                "description": "Utwórz sensor do śledzenia dni do ustalonej daty (np. koniec ubezpieczenia).",
+                "data": {
+                    "name": "Nazwa",
+                    "end_date": "Data końcowa",
+                    "warning_threshold_days": "Ostrzeżenie przed końcem (dni)",
+                    "device_id": "Przypisz do urządzenia"
+                }
+            }
+        },
+        "error": {
+            "invalid_duration": "Pole musi zawierać dodatni numer.",
+            "invalid_date": "Wprowadź poprawną datę."
+        },
+        "abort": {
+            "already_configured": "Ten wpis jest już skonfigurowany."
+        }
+    },
+    "options": {
+        "step": {
+            "battery": {
+                "title": "Wirtualna bateria",
+                "description": "Skonfiguruj wirtualną baterię, która symuluje rozładowanie na podstawie konfigurowalnego okresu żywotności.",
+                "data": {
+                    "battery_lifespan": "Żywotność baterii (dni)",
+                    "low_threshold_days": "Ostrzeżenie o niskim stanie (dni do końca)",
+                    "device_id": "Przypisz do urządzenia"
+                }
+            },
+            "maintenance": {
+                "title": "Czynność powtarzalna",
+                "description": "Skonfiguruj sensor do śledzenia dni do wykonania powtarzalnej czynności (np. wymiana filtra do wody co 90 dni).",
+                "data": {
+                    "interval_days": "Interwał czynności (dni)",
+                    "warning_threshold_days": "Ostrzeżenie przed końcem (dni)",
+                    "device_id": "Przypisz do urządzenia"
+                }
+            },
+            "fixed_date": {
+                "title": "Dni do ustalonej daty",
+                "description": "Skonfiguruj sensor do śledzenia dni do ustalonej daty (np. koniec ubezpieczenia).",
+                "data": {
+                    "end_date": "Data końcowa",
+                    "warning_threshold_days": "Ostrzeżenie przed końcem (dni)",
+                    "device_id": "Przypisz do urządzenia"
+                }
+            }
+        },
+        "error": {
+            "invalid_duration": "Pole musi zawierać dodatni numer.",
+            "invalid_date": "Wprowadź poprawną datę."
+        }
+    },
+    "services": {
+        "reset_battery": {
+            "name": "Resetuj baterię",
+            "description": "Resetuje baterię do 100% poprzez ustawienie daty wymiany na bieżącą."
+        },
+        "mark_as_done": {
+            "name": "Oznacz jako wykonane",
+            "description": "Oznacza czynność jako wykonaną poprzez ustawienie daty ostatniego wykonania na bieżącą."
+        }
+    }
+}

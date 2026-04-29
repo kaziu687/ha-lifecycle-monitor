@@ -1,0 +1,12 @@
+{
+  "domain": "lifecycle_monitor",
+  "name": "Lifecycle Monitor",
+  "codeowners": [
+    "@kaziu687"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/kaziu687/ha-lifecycle-monitor",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/kaziu687/ha-lifecycle-monitor/issues",
+  "version": "0.1.0"
+}

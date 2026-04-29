@@ -1,0 +1,129 @@
+{
+    "entity": {
+        "sensor": {
+            "days_remaining": {
+                "name": "Days remaining"
+            }
+        },
+        "binary_sensor": {
+            "warning": {
+                "name": "Warning"
+            },
+            "overdue": {
+                "name": "Overdue"
+            }
+        },
+        "button": {
+            "battery_replaced": {
+                "name": "Battery replaced"
+            },
+            "mark_as_done": {
+                "name": "Mark as done"
+            }
+        },
+        "datetime": {
+            "battery_replaced": {
+                "name": "Battery replaced"
+            },
+            "last_performed": {
+                "name": "Last performed"
+            },
+            "end_date": {
+                "name": "End date"
+            }
+        }
+    },
+    "config": {
+        "step": {
+            "user": {
+                "title": "Lifecycle Monitor",
+                "description": "Choose the type of device to add.",
+                "data": {
+                    "device_type": "Device type"
+                }
+            },
+            "battery": {
+                "title": "Set up Virtual Battery",
+                "description": "Create a virtual battery that simulates discharge based on a configurable lifespan.",
+                "data": {
+                    "name": "Device name",
+                    "battery_lifespan": "Battery lifespan (days)",
+                    "low_threshold_days": "Low battery threshold (days)",
+                    "device_id": "Attach to device"
+                }
+            },
+            "maintenance": {
+                "title": "Set up Maintenance Interval",
+                "description": "Create a sensor to track the days to perform a repetitive activity (e.g., replacing a water filter every 90 days).",
+                "data": {
+                    "name": "Device name",
+                    "interval_days": "Maintenance interval (days)",
+                    "warning_threshold_days": "Warning threshold (days)",
+                    "device_id": "Attach to device"
+                }
+            },
+            "fixed_date": {
+                "title": "Set up Fixed Date",
+                "description": "Create a sensor to track days until a date (e.g. insurance end date).",
+                "data": {
+                    "name": "Device name",
+                    "end_date": "End date",
+                    "warning_threshold_days": "Warning threshold (days)",
+                    "device_id": "Attach to device"
+                }
+            }
+        },
+        "error": {
+            "invalid_duration": "Duration must be a positive number.",
+            "invalid_date": "Please provide a valid date."
+        },
+        "abort": {
+            "already_configured": "This entry is already configured."
+        }
+    },
+    "options": {
+        "step": {
+            "battery": {
+                "title": "Configure Virtual Battery",
+                "description": "Configure a virtual battery that simulates discharge based on a configurable lifespan.",
+                "data": {
+                    "battery_lifespan": "Battery lifespan (days)",
+                    "low_threshold_days": "Low battery threshold (days)",
+                    "device_id": "Attach to device"
+                }
+            },
+            "maintenance": {
+                "title": "Configure Maintenance Interval",
+                "description": "Configure a sensor to track the days to perform a repetitive activity (e.g., replacing a water filter every 90 days).",
+                "data": {
+                    "interval_days": "Maintenance interval (days)",
+                    "warning_threshold_days": "Warning threshold (days)",
+                    "device_id": "Attach to device"
+                }
+            },
+            "fixed_date": {
+                "title": "Configure Fixed Date",
+                "description": "Configure a sensor to track days until a date (e.g. insurance end date).",
+                "data": {
+                    "end_date": "End date",
+                    "warning_threshold_days": "Warning threshold (days)",
+                    "device_id": "Attach to device"
+                }
+            }
+        },
+        "error": {
+            "invalid_duration": "Duration must be a positive number.",
+            "invalid_date": "Please provide a valid date."
+        }
+    },
+    "services": {
+        "reset_battery": {
+            "name": "Reset battery",
+            "description": "Resets the battery to 100% by setting the replacement date to now."
+        },
+        "mark_as_done": {
+            "name": "Mark as done",
+            "description": "Marks maintenance as done by setting the last performed date to now."
+        }
+    }
+}
