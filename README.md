@@ -1,46 +1,53 @@
-# Notice
+# Lifecycle Monitor
 
-The component and platforms in this repository are not meant to be used by a
-user, but as a "blueprint" that custom component developers can build
-upon, to make more awesome stuff.
+A Home Assistant custom integration for tracking lifecycle events of devices and consumables — battery replacements, maintenance intervals, and fixed deadlines.
 
-HAVE FUN! 😎
+## Features
 
-## Why?
+Three device types, each with dedicated sensors, binary sensors, and controls:
 
-This is simple, by having custom_components look (README + structure) the same
-it is easier for developers to help each other and for users to start using them.
+### Virtual Battery
 
-If you are a developer and you want to add things to this "blueprint" that you think more
-developers will have use for, please open a PR to add it :)
+Tracks a simulated battery charge level that decreases over time based on a configurable lifespan.
 
-## What?
+- **Sensor** — battery percentage (0–100%)
+- **Binary sensor** — low battery warning (configurable threshold in days)
+- **Button** — reset battery to 100%
+- **Datetime** — last replacement date
+- **Service** — `lifecycle_monitor.reset_battery`
 
-This repository contains multiple files, here is a overview:
+### Maintenance Interval
 
-File | Purpose | Documentation
--- | -- | --
-`.devcontainer.json` | Used for development/testing with Visual Studio Code. | [Documentation](https://code.visualstudio.com/docs/remote/containers)
-`.github/ISSUE_TEMPLATE/*.yml` | Templates for the issue tracker | [Documentation](https://help.github.com/en/github/building-a-strong-community/configuring-issue-templates-for-your-repository)
-`custom_components/integration_blueprint/*` | Integration files, this is where everything happens. | [Documentation](https://developers.home-assistant.io/docs/creating_component_index)
-`CONTRIBUTING.md` | Guidelines on how to contribute. | [Documentation](https://help.github.com/en/github/building-a-strong-community/setting-guidelines-for-repository-contributors)
-`LICENSE` | The license file for the project. | [Documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/licensing-a-repository)
-`README.md` | The file you are reading now, should contain info about the integration, installation and configuration instructions. | [Documentation](https://help.github.com/en/github/writing-on-github/basic-writing-and-formatting-syntax)
-`requirements.txt` | Python packages used for development/lint/testing this integration. | [Documentation](https://pip.pypa.io/en/stable/user_guide/#requirements-files)
+Tracks days remaining until a repetitive task is due (e.g., water filter replacement every 90 days).
 
-## How?
+- **Sensor** — days remaining
+- **Binary sensors** — warning (approaching) and overdue
+- **Button** — mark maintenance as done (resets the timer)
+- **Datetime** — last performed date
+- **Service** — `lifecycle_monitor.mark_as_done`
 
-1. Create a new repository in GitHub, using this repository as a template by clicking the "Use this template" button in the GitHub UI.
-1. Open your new repository in Visual Studio Code devcontainer (Preferably with the "`Dev Containers: Clone Repository in Named Container Volume...`" option).
-1. Rename all instances of the `integration_blueprint` to `custom_components/<your_integration_domain>` (e.g. `custom_components/awesome_integration`).
-1. Rename all instances of the `Integration Blueprint` to `<Your Integration Name>` (e.g. `Awesome Integration`).
-1. Run the `scripts/develop` to start HA and test out your new integration.
+### Fixed Date
 
-## Next steps
+Tracks days remaining until a specific deadline (e.g., insurance expiry).
 
-These are some next steps you may want to look into:
-- Add tests to your integration, [`pytest-homeassistant-custom-component`](https://github.com/MatthewFlamm/pytest-homeassistant-custom-component) can help you get started.
-- Add brand images (logo/icon).
-- Create your first release.
-- Share your integration on the [Home Assistant Forum](https://community.home-assistant.io/).
-- Submit your integration to [HACS](https://hacs.xyz/docs/publish/start).
+- **Sensor** — days remaining
+- **Binary sensors** — warning (approaching) and overdue
+- **Datetime** — end date (editable)
+
+## Attach to device
+
+Each monitored item can operate standalone or be attached to an existing HA device. When attached, all entities appear under that device's card in the UI.
+
+## Installation
+
+### HACS (recommended)
+
+Add this repository as a custom repository in HACS, then install "Lifecycle Monitor".
+
+### Manual
+
+Copy the `custom_components/lifecycle_monitor/` directory to your `<config>/custom_components/` and restart Home Assistant.
+
+## Configuration
+
+Go to **Settings > Devices & Services > Add Integration** and search for "Lifecycle Monitor".
