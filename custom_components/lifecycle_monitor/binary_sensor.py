@@ -108,7 +108,6 @@ class BatteryLowBinarySensor(_LifecycleBinarySensorBase):
 class MaintenanceWarningBinarySensor(_LifecycleBinarySensorBase):
     """Binary sensor that turns on when maintenance is approaching."""
 
-    _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_translation_key = "warning"
     _attr_suggested_object_id = "warning"
 
@@ -143,7 +142,6 @@ class MaintenanceWarningBinarySensor(_LifecycleBinarySensorBase):
 class MaintenanceOverdueBinarySensor(_LifecycleBinarySensorBase):
     """Binary sensor that turns on when maintenance is overdue."""
 
-    _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_translation_key = "overdue"
     _attr_suggested_object_id = "overdue"
 
@@ -184,7 +182,6 @@ def _get_fixed_date_remaining(entry: ConfigEntry) -> float | None:
 class FixedDateWarningBinarySensor(_LifecycleBinarySensorBase):
     """Binary sensor that turns on when fixed date is approaching."""
 
-    _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_translation_key = "warning"
     _attr_suggested_object_id = "warning"
 
@@ -214,7 +211,6 @@ class FixedDateWarningBinarySensor(_LifecycleBinarySensorBase):
 class FixedDateOverdueBinarySensor(_LifecycleBinarySensorBase):
     """Binary sensor that turns on when fixed date has passed."""
 
-    _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_translation_key = "overdue"
     _attr_suggested_object_id = "overdue"
 
