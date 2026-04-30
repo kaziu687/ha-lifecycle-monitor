@@ -22,7 +22,12 @@ from .const import (
     DEVICE_TYPE_FIXED_DATE,
     DEVICE_TYPE_MAINTENANCE,
 )
-from .data import LifecyclePolledEntity, get_attached_device, get_elapsed_days
+from .data import (
+    LifecyclePolledEntity,
+    get_attached_device,
+    get_elapsed_days,
+    get_entry_name,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -111,6 +116,13 @@ class MaintenanceWarningBinarySensor(_LifecycleBinarySensorBase):
     _attr_translation_key = "warning"
     _attr_suggested_object_id = "warning"
 
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("Warning")
+        return f"{entry_name} {base}" if entry_name else base
+
     def __init__(
         self,
         entry: ConfigEntry,
@@ -144,6 +156,13 @@ class MaintenanceOverdueBinarySensor(_LifecycleBinarySensorBase):
 
     _attr_translation_key = "overdue"
     _attr_suggested_object_id = "overdue"
+
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("Overdue")
+        return f"{entry_name} {base}" if entry_name else base
 
     def __init__(
         self,
@@ -185,6 +204,13 @@ class FixedDateWarningBinarySensor(_LifecycleBinarySensorBase):
     _attr_translation_key = "warning"
     _attr_suggested_object_id = "warning"
 
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("Warning")
+        return f"{entry_name} {base}" if entry_name else base
+
     def __init__(
         self,
         entry: ConfigEntry,
@@ -213,6 +239,13 @@ class FixedDateOverdueBinarySensor(_LifecycleBinarySensorBase):
 
     _attr_translation_key = "overdue"
     _attr_suggested_object_id = "overdue"
+
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("Overdue")
+        return f"{entry_name} {base}" if entry_name else base
 
     def __init__(
         self,

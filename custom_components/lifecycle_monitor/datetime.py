@@ -16,7 +16,7 @@ from .const import (
     DEVICE_TYPE_FIXED_DATE,
     DEVICE_TYPE_MAINTENANCE,
 )
-from .data import LifecycleEntity, get_attached_device
+from .data import LifecycleEntity, get_attached_device, get_entry_name
 
 if TYPE_CHECKING:
     import datetime
@@ -92,6 +92,13 @@ class LastPerformedDateTime(_LifecycleDateTimeBase):
     _attr_suggested_object_id = "last_performed"
     _attr_icon = "mdi:calendar-check"
 
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("Last performed")
+        return f"{entry_name} {base}" if entry_name else base
+
     def __init__(
         self,
         entry: ConfigEntry,
@@ -108,6 +115,13 @@ class EndDateDateTime(_LifecycleDateTimeBase):
     _attr_translation_key = "end_date"
     _attr_suggested_object_id = "end_date"
     _attr_icon = "mdi:calendar-end"
+
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("End date")
+        return f"{entry_name} {base}" if entry_name else base
 
     def __init__(
         self,

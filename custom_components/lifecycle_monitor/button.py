@@ -14,7 +14,7 @@ from .const import (
     DEVICE_TYPE_BATTERY,
     DEVICE_TYPE_MAINTENANCE,
 )
-from .data import LifecycleEntity, get_attached_device
+from .data import LifecycleEntity, get_attached_device, get_entry_name
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -74,6 +74,13 @@ class MarkAsDoneButton(_LifecycleButtonBase):
     _attr_translation_key = "mark_as_done"
     _attr_suggested_object_id = "mark_as_done"
     _attr_icon = "mdi:check-circle"
+
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("Mark as done")
+        return f"{entry_name} {base}" if entry_name else base
 
     def __init__(
         self,

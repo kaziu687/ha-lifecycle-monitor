@@ -24,7 +24,12 @@ from .const import (
     DEVICE_TYPE_FIXED_DATE,
     DEVICE_TYPE_MAINTENANCE,
 )
-from .data import LifecyclePolledEntity, get_attached_device, get_elapsed_days
+from .data import (
+    LifecyclePolledEntity,
+    get_attached_device,
+    get_elapsed_days,
+    get_entry_name,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -114,6 +119,13 @@ class MaintenanceDaysRemainingSensor(LifecycleSensorEntity):
     _attr_translation_key = "days_remaining"
     _attr_suggested_object_id = "days_remaining"
 
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("Days remaining")
+        return f"{entry_name} {base}" if entry_name else base
+
     @callback
     def _update_state(self) -> None:
         """Compute and set the days remaining."""
@@ -149,6 +161,13 @@ class FixedDateDaysRemainingSensor(LifecycleSensorEntity):
     _attr_native_unit_of_measurement = UnitOfTime.DAYS
     _attr_translation_key = "days_remaining"
     _attr_suggested_object_id = "days_remaining"
+
+    @property
+    def name(self) -> str | None:
+        """Return the name with user-provided prefix."""
+        entry_name = get_entry_name(self._entry)
+        base = self._get_translated_base_name("Days remaining")
+        return f"{entry_name} {base}" if entry_name else base
 
     @callback
     def _update_state(self) -> None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
@@ -26,6 +27,17 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 type LifecycleMonitorConfigEntry = ConfigEntry
+
+
+def _slugify_name(name: str) -> str:
+    """Convert a user-provided name to a slug suitable for entity IDs."""
+    slug = re.sub(r"[\s\-]+", "_", name.strip()).lower()
+    return re.sub(r"[^a-z0-9_]", "", slug).strip("_")
+
+
+def get_entry_name(entry: ConfigEntry) -> str:
+    """Return the user-provided name from the config entry."""
+    return entry.data.get(CONF_NAME, "")
 
 
 def get_attached_device(
@@ -71,10 +83,34 @@ class LifecycleEntity(Entity):
 
     @property
     def suggested_object_id(self) -> str | None:
-        """Return English entity ID suffix, independent of display language."""
-        if self._attr_suggested_object_id is not None:
+        """Return entity ID suffix prefixed with the slugified user name."""
+        if self._attr_suggested_object_id is None:
+            return super().suggested_object_id
+        name_slug = _slugify_name(get_entry_name(self._entry))
+        if not name_slug:
             return self._attr_suggested_object_id
-        return super().suggested_object_id
+        return f"{name_slug}_{self._attr_suggested_object_id}"
+
+    def _get_translated_base_name(self, fallback: str) -> str:
+        """Get the translated entity base name from platform translations."""
+        translation_key = getattr(self, "_attr_translation_key", None)
+        if not translation_key:
+            return fallback
+        platform = getattr(self, "platform", None)
+        if not platform:
+            return fallback
+        platform_data = getattr(platform, "platform_data", None)
+        if not platform_data:
+            return fallback
+        translations = platform_data.platform_translations
+        if not translations:
+            return fallback
+        key = (
+            f"component.{platform.platform_name}"
+            f".entity.{platform.domain}"
+            f".{translation_key}.name"
+        )
+        return translations.get(key, fallback)
 
 
 class LifecyclePolledEntity(LifecycleEntity):
