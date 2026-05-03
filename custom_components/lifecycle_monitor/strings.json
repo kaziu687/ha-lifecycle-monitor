@@ -89,7 +89,8 @@
                 "data": {
                     "battery_lifespan": "Battery lifespan (days)",
                     "low_threshold_days": "Low battery threshold (days)",
-                    "device_id": "Attach to device"
+                    "device_id": "Attach to device",
+                    "unassign_device": "Unassign"
                 }
             },
             "maintenance": {
@@ -98,7 +99,8 @@
                 "data": {
                     "interval_days": "Maintenance interval (days)",
                     "warning_threshold_days": "Warning threshold (days)",
-                    "device_id": "Attach to device"
+                    "device_id": "Attach to device",
+                    "unassign_device": "Unassign"
                 }
             },
             "fixed_date": {
@@ -107,7 +109,8 @@
                 "data": {
                     "end_date": "End date",
                     "warning_threshold_days": "Warning threshold (days)",
-                    "device_id": "Attach to device"
+                    "device_id": "Attach to device",
+                    "unassign_device": "Unassign"
                 }
             }
         },
