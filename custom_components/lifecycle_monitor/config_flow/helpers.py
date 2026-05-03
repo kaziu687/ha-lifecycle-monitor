@@ -22,7 +22,7 @@ def build_entry_title(
     device = dr.async_get(hass).async_get(device_id)
     if not device or not (device_name := device.name_by_user or device.name):
         return name
-    return f"{name} ({device_name})"
+    return f"{device_name} - {name}"
 
 
 def build_options(
