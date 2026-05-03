@@ -94,16 +94,13 @@ class BatteryLowBinarySensor(_LifecycleBinarySensorBase):
     def _update_state(self) -> None:
         """Compute and set the battery low state."""
         low_threshold = self._entry.options.get(CONF_LOW_THRESHOLD, 0)
-        if low_threshold <= 0:
+        elapsed_days = get_elapsed_days(self._entry)
+        if elapsed_days is None:
             new_state = False
         else:
-            elapsed_days = get_elapsed_days(self._entry)
-            if elapsed_days is None:
-                new_state = False
-            else:
-                lifespan_days = self._entry.options.get(CONF_BATTERY_LIFESPAN, 365)
-                remaining_days = lifespan_days - elapsed_days
-                new_state = remaining_days <= low_threshold
+            lifespan_days = self._entry.options.get(CONF_BATTERY_LIFESPAN, 365)
+            remaining_days = lifespan_days - elapsed_days
+            new_state = remaining_days <= low_threshold
         if self._attr_is_on == new_state:
             return
         self._attr_is_on = new_state
@@ -135,16 +132,13 @@ class MaintenanceWarningBinarySensor(_LifecycleBinarySensorBase):
     def _update_state(self) -> None:
         """Compute and set the warning state."""
         warning_threshold = self._entry.options.get(CONF_WARNING_THRESHOLD, 0)
-        if warning_threshold <= 0:
+        elapsed_days = get_elapsed_days(self._entry)
+        if elapsed_days is None:
             new_state = False
         else:
-            elapsed_days = get_elapsed_days(self._entry)
-            if elapsed_days is None:
-                new_state = False
-            else:
-                interval_days = self._entry.options.get(CONF_INTERVAL_DAYS, 365)
-                remaining_days = interval_days - elapsed_days
-                new_state = remaining_days <= warning_threshold
+            interval_days = self._entry.options.get(CONF_INTERVAL_DAYS, 365)
+            remaining_days = interval_days - elapsed_days
+            new_state = remaining_days <= warning_threshold
         if self._attr_is_on == new_state:
             return
         self._attr_is_on = new_state
@@ -223,11 +217,8 @@ class FixedDateWarningBinarySensor(_LifecycleBinarySensorBase):
     def _update_state(self) -> None:
         """Compute and set the warning state."""
         warning_threshold = self._entry.options.get(CONF_WARNING_THRESHOLD, 0)
-        if warning_threshold <= 0:
-            new_state = False
-        else:
-            remaining = _get_fixed_date_remaining(self._entry)
-            new_state = remaining is not None and remaining <= warning_threshold
+        remaining = _get_fixed_date_remaining(self._entry)
+        new_state = remaining is not None and remaining <= warning_threshold
         if self._attr_is_on == new_state:
             return
         self._attr_is_on = new_state
