@@ -73,6 +73,7 @@ class LifecycleEntity(Entity):
     ) -> None:
         """Initialize the entity."""
         self._entry = entry
+        self._attached = attached_device is not None
         if attached_device:
             self.device_entry = attached_device
         else:
@@ -86,10 +87,12 @@ class LifecycleEntity(Entity):
         """Return entity ID suffix prefixed with the slugified user name."""
         if self._attr_suggested_object_id is None:
             return super().suggested_object_id
-        name_slug = _slugify_name(get_entry_name(self._entry))
-        if not name_slug:
-            return self._attr_suggested_object_id
-        return f"{name_slug}_{self._attr_suggested_object_id}"
+        if self._attached:
+            name_slug = _slugify_name(get_entry_name(self._entry))
+            if not name_slug:
+                return self._attr_suggested_object_id
+            return f"{name_slug}_{self._attr_suggested_object_id}"
+        return self._attr_suggested_object_id
 
     def _get_translated_base_name(self, fallback: str) -> str:
         """Get the translated entity base name from platform translations."""
