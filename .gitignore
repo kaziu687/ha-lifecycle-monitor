@@ -1,0 +1,23 @@
+# artifacts
+__pycache__
+.pytest*
+*.egg-info
+*/build/*
+*/dist/*
+test_instance
+venv
+
+
+# misc
+.agents
+.claude
+.coverage
+.vscode
+coverage.xml
+.ruff_cache
+skills-lock.json
+
+
+# Home Assistant configuration
+config/*
+!config/configuration.yaml

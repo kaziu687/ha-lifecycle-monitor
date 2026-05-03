@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_DEVICE_ID
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_BATTERY_LIFESPAN,
@@ -24,6 +29,32 @@ from .const import (
     DEVICE_TYPE_MAINTENANCE,
     DOMAIN,
 )
+
+
+def _build_entry_title(
+    hass: HomeAssistant, name: str, device_id: str | None,
+) -> str:
+    """Build config entry title with attached device name."""
+    if not device_id:
+        return name
+    device = dr.async_get(hass).async_get(device_id)
+    if not device or not (device_name := device.name_by_user or device.name):
+        return name
+    return f"{name} ({device_name})"
+
+
+def _build_options(
+    base: dict,
+    user_input: dict,
+    extra_fields: dict[str, object],
+) -> dict:
+    """Build options dict, only including CONF_DEVICE_ID when selected."""
+    options = {**base, **extra_fields}
+    if device_id := user_input.get(CONF_DEVICE_ID):
+        options[CONF_DEVICE_ID] = device_id
+    else:
+        options.pop(CONF_DEVICE_ID, None)
+    return options
 
 
 class LifecycleMonitorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -42,20 +73,6 @@ class LifecycleMonitorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 default=default or vol.UNDEFINED,
             ): selector.DeviceSelector(),
         }
-
-    @staticmethod
-    def _build_options(
-        base: dict,
-        user_input: dict,
-        extra_fields: dict[str, object],
-    ) -> dict:
-        """Build options dict, only including CONF_DEVICE_ID when selected."""
-        options = {**base, **extra_fields}
-        if device_id := user_input.get(CONF_DEVICE_ID):
-            options[CONF_DEVICE_ID] = device_id
-        else:
-            options.pop(CONF_DEVICE_ID, None)
-        return options
 
     async def async_step_user(
         self,
@@ -110,12 +127,15 @@ class LifecycleMonitorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(str(uuid.uuid4()))
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=user_input[CONF_NAME],
+                    title=_build_entry_title(
+                        self.hass, user_input[CONF_NAME],
+                        user_input.get(CONF_DEVICE_ID),
+                    ),
                     data={
                         CONF_NAME: user_input[CONF_NAME],
                         CONF_DEVICE_TYPE: DEVICE_TYPE_BATTERY,
                     },
-                    options=self._build_options(
+                    options=_build_options(
                         {},
                         user_input,
                         {
@@ -177,12 +197,15 @@ class LifecycleMonitorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(str(uuid.uuid4()))
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=user_input[CONF_NAME],
+                    title=_build_entry_title(
+                        self.hass, user_input[CONF_NAME],
+                        user_input.get(CONF_DEVICE_ID),
+                    ),
                     data={
                         CONF_NAME: user_input[CONF_NAME],
                         CONF_DEVICE_TYPE: DEVICE_TYPE_MAINTENANCE,
                     },
-                    options=self._build_options(
+                    options=_build_options(
                         {},
                         user_input,
                         {
@@ -247,12 +270,15 @@ class LifecycleMonitorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(str(uuid.uuid4()))
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=user_input[CONF_NAME],
+                    title=_build_entry_title(
+                        self.hass, user_input[CONF_NAME],
+                        user_input.get(CONF_DEVICE_ID),
+                    ),
                     data={
                         CONF_NAME: user_input[CONF_NAME],
                         CONF_DEVICE_TYPE: DEVICE_TYPE_FIXED_DATE,
                     },
-                    options=self._build_options(
+                    options=_build_options(
                         {},
                         user_input,
                         {
@@ -315,6 +341,18 @@ class LifecycleMonitorOptionsFlow(config_entries.OptionsFlow):
         """Initialize options flow."""
         self._config_entry = config_entry
 
+    def _update_entry_title(self, new_options: dict) -> None:
+        """Update config entry title to reflect current device attachment."""
+        new_title = _build_entry_title(
+            self.hass,
+            self._config_entry.data[CONF_NAME],
+            new_options.get(CONF_DEVICE_ID),
+        )
+        if new_title != self._config_entry.title:
+            self.hass.config_entries.async_update_entry(
+                self._config_entry, title=new_title,
+            )
+
     async def async_step_init(
         self,
         user_input: dict | None = None,
@@ -341,17 +379,18 @@ class LifecycleMonitorOptionsFlow(config_entries.OptionsFlow):
                     errors={"base": "invalid_duration"},
                     data_schema=self._build_battery_schema(),
                 )
-            return self.async_create_entry(
-                title="",
-                data=self._build_options(
-                    self._config_entry.options,
-                    user_input,
-                    {
-                        CONF_BATTERY_LIFESPAN: user_input[CONF_BATTERY_LIFESPAN],
-                        CONF_LOW_THRESHOLD: user_input.get(CONF_LOW_THRESHOLD, 0),
-                    },
-                ),
+            new_options = _build_options(
+                self._config_entry.options,
+                user_input,
+                {
+                    CONF_BATTERY_LIFESPAN: user_input[CONF_BATTERY_LIFESPAN],
+                    CONF_LOW_THRESHOLD: user_input.get(CONF_LOW_THRESHOLD, 0),
+                },
             )
+            if user_input.get("unassign_device"):
+                new_options.pop(CONF_DEVICE_ID, None)
+            self._update_entry_title(new_options)
+            return self.async_create_entry(title="", data=new_options)
 
         return self.async_show_form(
             step_id="battery",
@@ -370,19 +409,20 @@ class LifecycleMonitorOptionsFlow(config_entries.OptionsFlow):
                     errors={"base": "invalid_duration"},
                     data_schema=self._build_maintenance_schema(),
                 )
-            return self.async_create_entry(
-                title="",
-                data=self._build_options(
-                    self._config_entry.options,
-                    user_input,
-                    {
-                        CONF_INTERVAL_DAYS: user_input[CONF_INTERVAL_DAYS],
-                        CONF_WARNING_THRESHOLD: user_input.get(
-                            CONF_WARNING_THRESHOLD, 0
-                        ),
-                    },
-                ),
+            new_options = _build_options(
+                self._config_entry.options,
+                user_input,
+                {
+                    CONF_INTERVAL_DAYS: user_input[CONF_INTERVAL_DAYS],
+                    CONF_WARNING_THRESHOLD: user_input.get(
+                        CONF_WARNING_THRESHOLD, 0
+                    ),
+                },
             )
+            if user_input.get("unassign_device"):
+                new_options.pop(CONF_DEVICE_ID, None)
+            self._update_entry_title(new_options)
+            return self.async_create_entry(title="", data=new_options)
 
         return self.async_show_form(
             step_id="maintenance",
@@ -391,67 +431,73 @@ class LifecycleMonitorOptionsFlow(config_entries.OptionsFlow):
 
     def _build_battery_schema(self) -> vol.Schema:
         """Build the battery options schema."""
-        return vol.Schema(
-            {
-                vol.Required(
-                    CONF_BATTERY_LIFESPAN,
-                    default=self._config_entry.options.get(CONF_BATTERY_LIFESPAN, 365),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=1,
-                        mode=selector.NumberSelectorMode.BOX,
-                        unit_of_measurement="days",
-                    ),
+        schema: dict[vol.Marker, selector.Selector] = {
+            vol.Required(
+                CONF_BATTERY_LIFESPAN,
+                default=self._config_entry.options.get(CONF_BATTERY_LIFESPAN, 365),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="days",
                 ),
-                vol.Optional(
-                    CONF_LOW_THRESHOLD,
-                    default=self._config_entry.options.get(CONF_LOW_THRESHOLD, 0),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0,
-                        mode=selector.NumberSelectorMode.BOX,
-                        unit_of_measurement="days",
-                    ),
+            ),
+            vol.Optional(
+                CONF_LOW_THRESHOLD,
+                default=self._config_entry.options.get(CONF_LOW_THRESHOLD, 0),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="days",
                 ),
-                vol.Optional(
-                    CONF_DEVICE_ID,
-                    default=self._config_entry.options.get(CONF_DEVICE_ID)
-                    or vol.UNDEFINED,
-                ): selector.DeviceSelector(),
-            },
-        )
+            ),
+            vol.Optional(
+                CONF_DEVICE_ID,
+                default=self._config_entry.options.get(CONF_DEVICE_ID)
+                or vol.UNDEFINED,
+            ): selector.DeviceSelector(),
+        }
+        if self._config_entry.options.get(CONF_DEVICE_ID):
+            schema[vol.Optional("unassign_device", default=False)] = (
+                selector.BooleanSelector()
+            )
+        return vol.Schema(schema)
 
     def _build_maintenance_schema(self) -> vol.Schema:
         """Build the maintenance options schema."""
-        return vol.Schema(
-            {
-                vol.Required(
-                    CONF_INTERVAL_DAYS,
-                    default=self._config_entry.options.get(CONF_INTERVAL_DAYS, 365),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=1,
-                        mode=selector.NumberSelectorMode.BOX,
-                        unit_of_measurement="days",
-                    ),
+        schema: dict[vol.Marker, selector.Selector] = {
+            vol.Required(
+                CONF_INTERVAL_DAYS,
+                default=self._config_entry.options.get(CONF_INTERVAL_DAYS, 365),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="days",
                 ),
-                vol.Optional(
-                    CONF_WARNING_THRESHOLD,
-                    default=self._config_entry.options.get(CONF_WARNING_THRESHOLD, 0),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0,
-                        mode=selector.NumberSelectorMode.BOX,
-                        unit_of_measurement="days",
-                    ),
+            ),
+            vol.Optional(
+                CONF_WARNING_THRESHOLD,
+                default=self._config_entry.options.get(CONF_WARNING_THRESHOLD, 0),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="days",
                 ),
-                vol.Optional(
-                    CONF_DEVICE_ID,
-                    default=self._config_entry.options.get(CONF_DEVICE_ID)
-                    or vol.UNDEFINED,
-                ): selector.DeviceSelector(),
-            },
-        )
+            ),
+            vol.Optional(
+                CONF_DEVICE_ID,
+                default=self._config_entry.options.get(CONF_DEVICE_ID)
+                or vol.UNDEFINED,
+            ): selector.DeviceSelector(),
+        }
+        if self._config_entry.options.get(CONF_DEVICE_ID):
+            schema[vol.Optional("unassign_device", default=False)] = (
+                selector.BooleanSelector()
+            )
+        return vol.Schema(schema)
 
     async def async_step_fixed_date(
         self,
@@ -466,21 +512,22 @@ class LifecycleMonitorOptionsFlow(config_entries.OptionsFlow):
                     errors={"base": "invalid_date"},
                     data_schema=self._build_fixed_date_schema(),
                 )
-            return self.async_create_entry(
-                title="",
-                data=self._build_options(
-                    self._config_entry.options,
-                    user_input,
-                    {
-                        CONF_END_DATE: dt_util.as_local(end_date).isoformat()
-                        if hasattr(end_date, "isoformat")
-                        else end_date,
-                        CONF_WARNING_THRESHOLD: user_input.get(
-                            CONF_WARNING_THRESHOLD, 0
-                        ),
-                    },
-                ),
+            new_options = _build_options(
+                self._config_entry.options,
+                user_input,
+                {
+                    CONF_END_DATE: dt_util.as_local(end_date).isoformat()
+                    if hasattr(end_date, "isoformat")
+                    else end_date,
+                    CONF_WARNING_THRESHOLD: user_input.get(
+                        CONF_WARNING_THRESHOLD, 0
+                    ),
+                },
             )
+            if user_input.get("unassign_device"):
+                new_options.pop(CONF_DEVICE_ID, None)
+            self._update_entry_title(new_options)
+            return self.async_create_entry(title="", data=new_options)
 
         return self.async_show_form(
             step_id="fixed_date",
@@ -496,28 +543,31 @@ class LifecycleMonitorOptionsFlow(config_entries.OptionsFlow):
             if parsed:
                 end_date_default = parsed
 
-        return vol.Schema(
-            {
-                vol.Required(
-                    CONF_END_DATE,
-                    default=end_date_default,
-                ): selector.DateTimeSelector(
-                    selector.DateTimeSelectorConfig(),
+        schema: dict[vol.Marker, selector.Selector] = {
+            vol.Required(
+                CONF_END_DATE,
+                default=end_date_default,
+            ): selector.DateTimeSelector(
+                selector.DateTimeSelectorConfig(),
+            ),
+            vol.Optional(
+                CONF_WARNING_THRESHOLD,
+                default=self._config_entry.options.get(CONF_WARNING_THRESHOLD, 0),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0,
+                    mode=selector.NumberSelectorMode.BOX,
+                    unit_of_measurement="days",
                 ),
-                vol.Optional(
-                    CONF_WARNING_THRESHOLD,
-                    default=self._config_entry.options.get(CONF_WARNING_THRESHOLD, 0),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0,
-                        mode=selector.NumberSelectorMode.BOX,
-                        unit_of_measurement="days",
-                    ),
-                ),
-                vol.Optional(
-                    CONF_DEVICE_ID,
-                    default=self._config_entry.options.get(CONF_DEVICE_ID)
-                    or vol.UNDEFINED,
-                ): selector.DeviceSelector(),
-            },
-        )
+            ),
+            vol.Optional(
+                CONF_DEVICE_ID,
+                default=self._config_entry.options.get(CONF_DEVICE_ID)
+                or vol.UNDEFINED,
+            ): selector.DeviceSelector(),
+        }
+        if self._config_entry.options.get(CONF_DEVICE_ID):
+            schema[vol.Optional("unassign_device", default=False)] = (
+                selector.BooleanSelector()
+            )
+        return vol.Schema(schema)
